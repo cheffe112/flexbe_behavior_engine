@@ -21,7 +21,6 @@ class ConcurrencyContainer(OperatableStateMachine):
         super(ConcurrencyContainer, self).__init__(*args, **kwargs)
         self._conditions = conditions
         self._returned_outcomes = dict()
-        self._do_rate_sleep = False
 
         self.__execute = self.execute
         self.execute = self._concurrency_execute
@@ -43,7 +42,6 @@ class ConcurrencyContainer(OperatableStateMachine):
             return self._preempted_name
 
         #self._state_transitioning_lock.release()
-        sleep_dur = None
         for state in self._ordered_states:
             if state.name in list(self._returned_outcomes.keys()) and self._returned_outcomes[state.name] != self._loopback_name:
                 continue
@@ -55,24 +53,7 @@ class ConcurrencyContainer(OperatableStateMachine):
                 elif state._get_deep_state() is not None:
                     state._get_deep_state()._notify_skipped()
                 continue
-            state_sleep_dur = state._rate.remaining().to_sec()
-            if state_sleep_dur <= 0:
-                sleep_dur = 0
-                self._returned_outcomes[state.name] = self._execute_state(state)
-                # check again in case the sleep has already been handled by the child
-                if state._rate.remaining().to_sec() < 0:
-                    # this sleep returns immediately since sleep duration is negative,
-                    # but is required here to reset the sleep time after executing
-                    #state._rate.sleep()
-                    pass
-            else:
-                if sleep_dur is None:
-                    sleep_dur = state_sleep_dur
-                else:
-                    sleep_dur = min(sleep_dur, state_sleep_dur)
-        if sleep_dur > 0:
-            #rospy.sleep(sleep_dur)
-            pass
+            self._returned_outcomes[state.name] = self._execute_state(state)
         #self._state_transitioning_lock.acquire()
 
         # Determine outcome
