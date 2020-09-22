@@ -63,14 +63,16 @@ class ConcurrencyContainer(OperatableStateMachine):
                 if state._rate.remaining().to_sec() < 0:
                     # this sleep returns immediately since sleep duration is negative,
                     # but is required here to reset the sleep time after executing
-                    state._rate.sleep()
+                    #state._rate.sleep()
+                    pass
             else:
                 if sleep_dur is None:
                     sleep_dur = state_sleep_dur
                 else:
                     sleep_dur = min(sleep_dur, state_sleep_dur)
         if sleep_dur > 0:
-            rospy.sleep(sleep_dur)
+            #rospy.sleep(sleep_dur)
+            pass
         #self._state_transitioning_lock.acquire()
 
         # Determine outcome
